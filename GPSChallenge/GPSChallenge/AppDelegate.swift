@@ -13,7 +13,12 @@ import CoreLocation
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate {
 
+    let clientSecret = "TJTCBCSAU0TZTVHYKW5WUZI3RSKU2D052ZISKCOGW3FD5ZTV"
+    let clientID = "CHWAF3MR10PLLNGI2BO2OLCSW3XHSBXTCQ20ZYQ2TNFKVMW2"
+    
     let locManager = CLLocationManager()
+    var longitude = 0.0
+    var latitude = 0.0
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -24,6 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
             locManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
             locManager.startUpdatingLocation()
         }
+        
         return true
     }
 
@@ -44,7 +50,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let locValue: CLLocationCoordinate2D = manager.location?.coordinate else { return }
         print("location = \(locValue.latitude) \(locValue.longitude)")
+        longitude = locValue.longitude
+        latitude = locValue.latitude
+        apiRequest(longitude: longitude, latitude: latitude)
     }
-
+    
+    func apiRequest(longitude:Double, latitude:Double){
+        let request = NSMutableURLRequest(url: NSURL(string: "https://api.foursquare.com/v2/venues/search?client_id=\(clientID)&client_secret=\(clientSecret)&v=20190520&intent=checkin&ll=\(latitude),\(longitude)&query=restaurant&limit=10&radius=200")! as URL)
+        
+        let session = URLSession.shared
+        
+        let task = session.dataTask(with: request as URLRequest) {(data, response, error)
+            in
+            print(data ?? "no Data")
+            
+            if let d = data {
+                let string = String(data: d, encoding: String.Encoding.utf8)
+                print(string ?? "no string")
+                return
+            }
+            print(response ?? "no response")
+            print (error ?? "no error")
+        }
+        task.resume()
+    }
 }
 
